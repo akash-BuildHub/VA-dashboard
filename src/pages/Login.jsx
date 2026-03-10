@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
 
@@ -30,13 +30,12 @@ export default function Login() {
       </video>
       <div className="absolute inset-0 bg-slate-950/45" />
 
-      <div className="relative z-10 w-full max-w-[380px] rounded-2xl border border-slate-500/35 bg-slate-900/55 p-6 backdrop-blur-[2px] shadow-[0_20px_45px_rgba(2,6,23,0.55)]">
-        <div className="mb-6 flex flex-col items-center">
-          <div className="mb-4 w-full max-w-[145px]">
+      <div className="relative z-10 w-full max-w-[340px] rounded-2xl border border-slate-500/35 bg-slate-900/55 p-5 backdrop-blur-[2px] shadow-[0_20px_45px_rgba(2,6,23,0.55)]">
+        <div className="mb-5 flex flex-col items-center">
+          <div className="mb-3 w-full max-w-[125px]">
             <img src="/startup-logo.png" alt="Startup Park Logo" className="w-full h-auto object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]" />
           </div>
-          <h1 className="text-2xl font-bold leading-tight text-white tracking-wide sm:text-[2rem]">Video Analytics</h1>
-          <p className="mt-2 text-sm text-slate-300/80">Sign in to your dashboard</p>
+          <p className="mt-1.5 text-sm text-slate-300/80">Sign in to your dashboard</p>
         </div>
 
         {error && (
@@ -46,7 +45,7 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-slate-200/90" htmlFor="username">
               Username

@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Camera, Users, Smartphone, Bed, UserX, BriefcaseBusiness, UserRound } from 'lucide-react';
+import { Users, Smartphone, Bed, UserX, BriefcaseBusiness, UserRound } from 'lucide-react';
 import clsx from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
