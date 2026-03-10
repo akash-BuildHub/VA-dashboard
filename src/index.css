@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme {
+:root {
   --color-primary-500: #3b82f6;
   --color-primary-600: #2563eb;
   --color-dark-900: #0f172a;
@@ -10,7 +10,14 @@
 
 @layer base {
   body {
-    @apply bg-slate-900 text-slate-100 antialiased h-screen w-screen overflow-hidden;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #0f172a;
+    color: #f1f5f9;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
