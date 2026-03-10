@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Users, Smartphone, Bed, UserX, BriefcaseBusiness, UserRound } from 'lucide-react';
 import clsx from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -20,7 +20,11 @@ export default function CameraCard({
   durationSeconds = 300,
 }) {
   const dialRef = useRef(null);
+  const rafRef = useRef(null);
+  const pendingSecondRef = useRef(0);
+  const DIAL_START_OFFSET_DEG = 0;
   const [selectedSecond, setSelectedSecond] = useState(0);
+  const [isDialDragging, setIsDialDragging] = useState(false);
 
   const parsedVideoStartMs = videoStartTime ? Date.parse(videoStartTime) : NaN;
   const parsedVideoEndMs = videoEndTime ? Date.parse(videoEndTime) : NaN;
@@ -46,7 +50,7 @@ export default function CameraCard({
     { key: 'working', label: 'Working', icon: BriefcaseBusiness },
   ];
 
-  const angle = (selectedSecond / normalizedDuration) * 360;
+  const angle = Math.min(359.9, (selectedSecond / normalizedDuration) * 360);
   const minute = Math.floor(selectedSecond / 60);
   const second = selectedSecond % 60;
   const totalMinute = Math.floor(normalizedDuration / 60);
@@ -67,6 +71,24 @@ export default function CameraCard({
     ? selectedVideoDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     : '--:--:--';
 
+  useEffect(() => () => {
+    if (rafRef.current) {
+      window.cancelAnimationFrame(rafRef.current);
+    }
+  }, []);
+
+  const commitDialSecond = (nextSecond) => {
+    const boundedSecond = Math.min(normalizedDuration, Math.max(0, nextSecond));
+    pendingSecondRef.current = boundedSecond;
+
+    if (rafRef.current) return;
+
+    rafRef.current = window.requestAnimationFrame(() => {
+      setSelectedSecond(pendingSecondRef.current);
+      rafRef.current = null;
+    });
+  };
+
   const updateDial = (clientX, clientY) => {
     if (!dialRef.current) return;
     const rect = dialRef.current.getBoundingClientRect();
@@ -77,15 +99,17 @@ export default function CameraCard({
     let nextAngle = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
     if (nextAngle < 0) nextAngle += 360;
     const nextSecond = Math.round((nextAngle / 360) * normalizedDuration);
-    setSelectedSecond(Math.min(normalizedDuration, Math.max(0, nextSecond)));
+    commitDialSecond(nextSecond);
   };
 
   const handleMouseDown = (event) => {
+    setIsDialDragging(true);
     updateDial(event.clientX, event.clientY);
     const handleMouseMove = (moveEvent) => updateDial(moveEvent.clientX, moveEvent.clientY);
     const handleMouseUp = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
+      setIsDialDragging(false);
     };
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
@@ -94,6 +118,7 @@ export default function CameraCard({
   const handleTouchStart = (event) => {
     const touch = event.touches[0];
     if (!touch) return;
+    setIsDialDragging(true);
     updateDial(touch.clientX, touch.clientY);
     const handleTouchMove = (moveEvent) => {
       const movingTouch = moveEvent.touches[0];
@@ -103,9 +128,12 @@ export default function CameraCard({
     const handleTouchEnd = () => {
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchEnd);
+      setIsDialDragging(false);
     };
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
     window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchcancel', handleTouchEnd);
   };
 
   return (
@@ -157,8 +185,8 @@ export default function CameraCard({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-3 z-10 relative">
-        <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/55 p-4 lg:col-span-1">
+      <div className="relative z-10 grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="relative flex h-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/55 p-4 lg:col-span-1">
           <div className="absolute inset-0 bg-blue-500/5 blur-xl"></div>
           <Users className="w-6 h-6 text-blue-400 mb-4 opacity-80" />
           <span className="text-slate-400 text-sm font-medium mb-1">Persons Detected</span>
@@ -186,21 +214,31 @@ export default function CameraCard({
               onTouchStart={handleTouchStart}
               onKeyDown={(event) => {
                 if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
-                  setSelectedSecond((prev) => Math.min(normalizedDuration, prev + 5));
+                  commitDialSecond(selectedSecond + 5);
                 }
                 if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
-                  setSelectedSecond((prev) => Math.max(0, prev - 5));
+                  commitDialSecond(selectedSecond - 5);
                 }
               }}
-              className="mt-2 relative h-28 w-28 rounded-full cursor-grab active:cursor-grabbing select-none touch-none"
+              className="mt-2 relative h-28 w-28 rounded-full select-none touch-none"
+              style={{ cursor: isDialDragging ? 'grabbing' : 'grab' }}
             >
               <div className="absolute inset-0 rounded-full border-8 border-slate-700/90 bg-slate-800 shadow-inner" />
               <div
-                className="absolute inset-0 rounded-full border-8 border-blue-500/80 transition-all duration-200"
-                style={{ clipPath: `polygon(50% 50%, 50% 0%, ${50 + 50 * Math.sin((angle * Math.PI) / 180)}% ${50 - 50 * Math.cos((angle * Math.PI) / 180)}%, 50% 50%)` }}
+                className="absolute inset-0 rounded-full transition-[background] duration-150"
+                style={{
+                  background: `conic-gradient(from ${DIAL_START_OFFSET_DEG}deg, rgba(59,130,246,0.95) ${angle}deg, rgba(51,65,85,0.7) ${angle}deg 360deg)`,
+                }}
               />
+              <div className="absolute inset-[8px] rounded-full border border-slate-700/90 bg-slate-800/95 shadow-inner" />
               <div className="absolute inset-4 rounded-full border border-slate-600/80 bg-slate-900/90 flex items-center justify-center text-sm font-bold text-slate-100">{formattedTime}</div>
-              <div className="absolute inset-0 transition-transform duration-150" style={{ transform: `rotate(${angle}deg)` }}>
+              <div
+                className="absolute inset-0"
+                style={{
+                  transform: `rotate(${angle + DIAL_START_OFFSET_DEG}deg)`,
+                  transition: isDialDragging ? 'none' : 'transform 180ms cubic-bezier(0.22, 1, 0.36, 1)',
+                }}
+              >
                 <div className="absolute left-1/2 top-1/2 h-8 w-1 -translate-x-1/2 -translate-y-[88%] rounded-full bg-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.8)]" />
                 <div className="absolute left-1/2 top-[18%] -translate-x-1/2 h-0 w-0 border-l-[6px] border-r-[6px] border-b-[10px] border-l-transparent border-r-transparent border-b-blue-300 drop-shadow-[0_0_8px_rgba(147,197,253,0.7)]" />
               </div>
@@ -218,7 +256,7 @@ export default function CameraCard({
           </div>
         </div>
 
-        <div className="relative flex flex-col overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/55 p-4 lg:col-span-2">
+        <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/55 p-4 lg:col-span-2">
           <h3 className="text-sm font-semibold text-slate-300 mb-3">Activity Categories</h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 flex-1">
