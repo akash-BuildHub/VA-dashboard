@@ -1,45 +1,65 @@
-# Logs
-logs
+# cspell:ignore ntvs njsproj vite eslintcache
+# Dependencies
+node_modules/
+.pnpm-store/
+.npm/
+
+# Build output
+dist/
+dist-ssr/
+
+# Coverage
+coverage/
+*.lcov
+
+# Logs and runtime files
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+*.pid
+*.seed
+*.pid.lock
 
-node_modules
-dist
-dist-ssr
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Local config
 *.local
 
-# Editor directories and files
+# Tooling caches
+.cache/
+.parcel-cache/
+.vite/
+.turbo/
+.eslintcache
+*.tsbuildinfo
+
+# Package manager caches
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Editor and IDE files
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Environment files
-.env
-.env.*
-!.env.example
-
-# Test output
-coverage
-*.lcov
-
-# Build and cache artifacts
-.cache
-.parcel-cache
-.vite
-.turbo
-.eslintcache
-*.tsbuildinfo
-
-# OS-generated files
+# OS files
+.DS_Store
 Thumbs.db
 Desktop.ini
