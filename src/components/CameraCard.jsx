@@ -1,7 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Users, Smartphone, Bed, UserX, BriefcaseBusiness, UserRound } from 'lucide-react';
+import { Users, Smartphone, Bed, UserX, BriefcaseBusiness, Building2 } from 'lucide-react';
 import clsx from 'clsx';
 import { twMerge } from 'tailwind-merge';
+
+const fallbackLogoByCameraId = {
+  owlytics: '/company-logos/owlytics.svg',
+  entrance: '/company-logos/entrance.svg',
+  workspace: '/company-logos/workspace.svg',
+};
 
 export default function CameraCard({
   title,
@@ -25,6 +31,7 @@ export default function CameraCard({
   const DIAL_START_OFFSET_DEG = 0;
   const [selectedSecond, setSelectedSecond] = useState(0);
   const [isDialDragging, setIsDialDragging] = useState(false);
+  const [logoLoadFailed, setLogoLoadFailed] = useState(false);
 
   const parsedVideoStartMs = videoStartTime ? Date.parse(videoStartTime) : NaN;
   const parsedVideoEndMs = videoEndTime ? Date.parse(videoEndTime) : NaN;
@@ -42,6 +49,22 @@ export default function CameraCard({
   const activeActivity =
     safeTimeline.find(({ start, end }) => selectedSecond >= start && selectedSecond < end) ||
     safeTimeline[safeTimeline.length - 1];
+
+  const selectedCameraOption = useMemo(
+    () => cameraOptions.find((camera) => camera.id === selectedCamera),
+    [cameraOptions, selectedCamera]
+  );
+
+  const companyLogoSrc = useMemo(() => {
+    const apiLogo =
+      selectedCameraOption?.logoUrl ||
+      selectedCameraOption?.logo ||
+      selectedCameraOption?.imageUrl ||
+      selectedCameraOption?.image;
+
+    if (apiLogo) return apiLogo;
+    return fallbackLogoByCameraId[selectedCamera] || null;
+  }, [selectedCamera, selectedCameraOption]);
 
   const activityCards = [
     { key: 'mobile', label: 'Employee using mobile phone', icon: Smartphone },
@@ -76,6 +99,10 @@ export default function CameraCard({
       window.cancelAnimationFrame(rafRef.current);
     }
   }, []);
+
+  useEffect(() => {
+    setLogoLoadFailed(false);
+  }, [selectedCamera, companyLogoSrc]);
 
   const commitDialSecond = (nextSecond) => {
     const boundedSecond = Math.min(normalizedDuration, Math.max(0, nextSecond));
@@ -145,7 +172,16 @@ export default function CameraCard({
         <div className="flex items-center gap-4">
           <div className="relative rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-blue-600/5 p-3 shadow-inner">
             <div className="flex h-12 w-12 items-center justify-center rounded-full border border-blue-400/40 bg-slate-900/70 anim-glow">
-              <UserRound className="h-5 w-5 text-blue-300" />
+              {companyLogoSrc && !logoLoadFailed ? (
+                <img
+                  src={companyLogoSrc}
+                  alt={`${title} logo`}
+                  className="h-10 w-10 rounded-full object-cover"
+                  onError={() => setLogoLoadFailed(true)}
+                />
+              ) : (
+                <Building2 className="h-5 w-5 text-blue-300" />
+              )}
             </div>
           </div>
           <div>

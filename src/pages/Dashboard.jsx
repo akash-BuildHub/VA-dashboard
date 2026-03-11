@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { motion as Motion } from 'framer-motion';
 import Sidebar from '../components/Sidebar';
 
 export default function Dashboard() {
@@ -8,7 +9,13 @@ export default function Dashboard() {
   const closeSidebar = () => setIsSidebarOpen(false);
 
   return (
-    <div className="relative flex h-screen flex-col overflow-hidden bg-slate-900 font-sans">
+    <Motion.div
+      initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
+      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      exit={{ opacity: 0, y: -10, filter: 'blur(4px)' }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="relative flex h-screen flex-col overflow-hidden bg-slate-900 font-sans"
+    >
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-24 left-1/3 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl" />
@@ -27,6 +34,6 @@ export default function Dashboard() {
           <Outlet context={{ isSidebarOpen, toggleSidebar }} />
         </main>
       </div>
-    </div>
+    </Motion.div>
   );
 }

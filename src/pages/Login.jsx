@@ -1,30 +1,18 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
+import { motion as Motion } from 'framer-motion';
 // cspell:ignore owlytics
 
 export default function Login() {
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('123456');
   const [error, setError] = useState('');
-  const logoRef = useRef(null);
   const navigate = useNavigate();
 
   const handleLogin = (e) => {
     e.preventDefault();
     if (username === 'admin' && password === '123456') {
-      const logoRect = logoRef.current?.getBoundingClientRect();
-      if (logoRect) {
-        sessionStorage.setItem(
-          'logoTransitionStart',
-          JSON.stringify({
-            left: logoRect.left,
-            top: logoRect.top,
-            width: logoRect.width,
-            height: logoRect.height,
-          })
-        );
-      }
       navigate('/dashboard/owlytics'); // Redirect to first camera by default
     } else {
       setError('Invalid username or password');
@@ -32,7 +20,13 @@ export default function Login() {
   };
 
   return (
-    <div className="relative flex h-screen items-center justify-center overflow-hidden px-4">
+    <Motion.div
+      initial={{ opacity: 0, scale: 1.03, filter: 'blur(4px)' }}
+      animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+      exit={{ opacity: 0, scale: 0.985, filter: 'blur(4px)' }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      className="relative flex h-screen items-center justify-center overflow-hidden px-4"
+    >
       <video
         className="absolute inset-0 h-full w-full object-cover"
         autoPlay
@@ -40,13 +34,13 @@ export default function Login() {
         muted
         playsInline
       >
-        <source src="/login_background.mp4" type="video/mp4" />
+        <source src="/login_background-2.mp4" type="video/mp4" />
       </video>
       <div className="absolute inset-0 bg-slate-950/45" />
 
       <div className="relative z-10 w-full max-w-[340px] rounded-2xl border border-slate-500/35 bg-slate-900/55 p-5 backdrop-blur-[2px] shadow-[0_20px_45px_rgba(2,6,23,0.55)]">
         <div className="mb-5 flex flex-col items-center">
-          <div ref={logoRef} className="mb-3 w-full max-w-[165px]">
+          <div className="mb-3 w-full max-w-[165px]">
             <img src="/startup-logo.png" alt="Startup Park Logo" className="w-full h-auto object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]" />
           </div>
         </div>
@@ -95,6 +89,6 @@ export default function Login() {
           </button>
         </form>
       </div>
-    </div>
+    </Motion.div>
   );
 }
